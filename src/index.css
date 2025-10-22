@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Sueldo Neto Perú 2025 - Design System */
+
+@layer base {
+  :root {
+    /* Perú Calculator Brand Colors */
+    --primary-intense: 240 100% 44.1%; /* #0000e0 - azul intenso */
+    --primary-deep: 240 100% 41.8%;    /* #0000d5 - azul profundo */
+    --success-bright: 142 76% 36%;      /* verde vibrante para neto */
+    --warning-soft: 25 95% 53%;         /* naranja suave para descuentos */
+    
+    /* Core System */
+    --background: 0 0% 100%; /* fondo blanco */
+    --foreground: 220 13% 18%; /* texto oscuro */
+
+    --card: 0 0% 100%; /* tarjetas blancas */
+    --card-foreground: 220 13% 18%; /* texto oscuro en tarjetas */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+
+    --primary: var(--primary-intense);
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: var(--primary-deep);
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 20% 96%;
+    --muted-foreground: 220 13% 46%;
+
+    --accent: var(--success-bright);
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 0 0% 100%;
+    --ring: var(--primary-intense);
+
+    --radius: 0.75rem;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(180deg, hsl(var(--primary-intense)), hsl(var(--primary-deep)));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.1), hsl(0 0% 100% / 0.05));
+    --gradient-shine: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.2), transparent);
+    
+    /* Shadows */
+    --shadow-card: 0 4px 16px hsl(240 100% 20% / 0.15);
+    --shadow-elevated: 0 8px 32px hsl(240 100% 20% / 0.25);
+    --shadow-glow: 0 0 20px hsl(var(--primary-intense) / 0.3);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .dark {
+    --background: 0 0% 100%;
+    --foreground: 220 13% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 18%;
+
+    --primary: var(--primary-intense);
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: var(--primary-deep);
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 20% 96%;
+    --muted-foreground: 220 13% 46%;
+
+    --accent: var(--success-bright);
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 0 0% 100%;
+    --ring: var(--primary-intense);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar for webkit browsers */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
