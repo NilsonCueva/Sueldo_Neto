@@ -8,15 +8,20 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// 👉 BASE_URL lo define Vite automáticamente según el base del vite.config.ts
+// "/" en dev / Netlify  → funciona normal
+// "/sueldo-pe-magico" en GitHub Pages (--mode github) → también funciona
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter basename={basename}>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          {/* Rutas adicionales arriba del catch-all */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
