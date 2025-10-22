@@ -7,6 +7,7 @@ import ChartsPanel from '@/components/salary/ChartsPanel';
 import BreakdownAccordion from '@/components/salary/BreakdownAccordion';
 import { calculateSalary } from '@/utils/salaryCalculator';
 import type { SalaryInputs, SalaryResults } from '@/utils/salaryCalculator';
+import logo from '/Intercorp_Retail.svg';
 
 const SalaryCalculator: React.FC = () => {
   const [results, setResults] = useState<SalaryResults | null>(null);
@@ -65,7 +66,7 @@ const SalaryCalculator: React.FC = () => {
 
           {/* Logo → pequeño en móvil, normal en sm+ */}
           <img
-            src="/Intercorp_Retail.svg"
+            src={logo}
             alt="Intercorp Retail Logo"
             className="
               h-8 w-auto max-w-[120px] object-contain
