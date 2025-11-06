@@ -2,17 +2,42 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: {
+        DEFAULT: "1rem",
+        sm: "1.25rem",
+        lg: "1.5rem",
+        xl: "2rem",
+        "2xl": "2.5rem",
+        "3xl": "3rem",
+        "4xl": "3.5rem",
+      },
+      // anchos máximos del container por breakpoint
       screens: {
         "2xl": "1400px",
+        "3xl": "1720px", // cómodo para 1080p
+        "4xl": "1920px", // Full HD
+        "5xl": "2560px", // 1440p / 2.5K
       },
     },
     extend: {
+      // breakpoints extra para usar clases 3xl:, 4xl:, 5xl:, tv:
+      screens: {
+        "3xl": "1920px",
+        "4xl": "2560px",
+        "5xl": "3840px", // 4K
+        "tv": "4096px", // 🟢 Televisores grandes o ultra-wide
+      },
+
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -58,50 +83,59 @@ export default {
           foreground: "hsl(0 0% 100%)",
         },
       },
+
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        sans: [
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif",
+        ],
       },
+
       backgroundImage: {
-        'gradient-primary': 'var(--gradient-primary)',
-        'gradient-card': 'var(--gradient-card)',
-        'gradient-shine': 'var(--gradient-shine)',
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-card": "var(--gradient-card)",
+        "gradient-shine": "var(--gradient-shine)",
       },
+
       boxShadow: {
-        'card': 'var(--shadow-card)',
-        'elevated': 'var(--shadow-elevated)',
-        'glow': 'var(--shadow-glow)',
+        card: "var(--shadow-card)",
+        elevated: "var(--shadow-elevated)",
+        glow: "var(--shadow-glow)",
       },
+
       transitionTimingFunction: {
-        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
-        'spring': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        smooth: "cubic-bezier(0.4, 0, 0.2, 1)",
+        spring: "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
       },
+
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
         "count-up": {
           from: { transform: "translateY(20px)", opacity: "0" },
           to: { transform: "translateY(0)", opacity: "1" },
         },
-        "glow": {
+        glow: {
           "0%, 100%": { boxShadow: "var(--shadow-card)" },
           "50%": { boxShadow: "var(--shadow-glow)" },
         },
@@ -114,11 +148,12 @@ export default {
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
+
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "count-up": "count-up 0.6s ease-out forwards",
-        "glow": "glow 2s ease-in-out infinite",
+        glow: "glow 2s ease-in-out infinite",
         "slide-in": "slide-in 0.5s ease-out forwards",
         "fade-in": "fade-in 0.4s ease-out forwards",
       },

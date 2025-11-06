@@ -26,7 +26,11 @@ interface AnnualMetricsProps {
   healthRateLabel?: string;
   riaAliquots?: RiaAliquots | null;
 
-  annualFoodAllowance?: number; 
+  annualFoodAllowance?: number;
+
+  // opcionales
+  bonusGross?: number;
+  bonusNet?: number;
 }
 
 const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
@@ -41,27 +45,61 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
   healthRateLabel = '9%',
   riaAliquots = null,
   annualFoodAllowance = 0,
+  bonusGross = 0,
+  bonusNet,
 }) => {
   const isRIA = regime === 'RIA';
 
+  // ¿hay vales?
+  const hasVales = !!annualFoodAllowance && annualFoodAllowance > 0;
+
+  // ¿hay bono bruto?
+  const hasBonusGross = typeof bonusGross === 'number' && bonusGross > 0;
+
+  // total mostrado en la card de "Total Ingresos..." (incluye bono bruto si existe)
+  const totalWithBonus = totalAnnualIncome + (hasBonusGross ? bonusGross : 0);
+
+  // Etiqueta “Total…” como ReactNode para controlar el salto de línea en pantallas chicas
+  const totalLabelNode = hasBonusGross ? (
+    <>
+      Total Ingresos Anuales ( Bonos +
+      <br className="block sm:hidden" />
+      <span className="hidden sm:inline"> </span>
+      <span className="text-[10px] tv:text-xs">
+        2 Gratificaciones + Bono Essalud + 12 Sueldos)
+      </span>
+    </>
+  ) : (
+    <>
+      Total Ingresos Anuales
+      <br className="block sm:hidden" />
+      <span className="hidden sm:inline"> </span>
+      <span className="text-[10px] tv:text-xs">
+        (2 Gratificaciones + Bono Essalud + 12 Sueldos)
+      </span>
+    </>
+  );
+
+  // ====== Cards base (normal) ======
   const baseMetrics = [
     {
-      label: 'Ingresos Anuales (12 meses)',
+      label: 'Ingresos Anuales (12 sueldos)',
       value: annualGrossIncome,
       icon: Calendar,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-900/20',
     },
-    {
-      label: 'Total Ingresos Anuales (Gratificaciones + Bono Salud + 12 meses)',
-      value: totalAnnualIncome,
-      icon: TrendingUp,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
-    },
-  ];
-
-  const normalExtras = [
+    ...(hasVales
+      ? [
+          {
+            label: 'Vales de Alimentos (12 meses)',
+            value: annualFoodAllowance,
+            icon: Coins,
+            color: 'text-yellow-600',
+            bgColor: 'bg-yellow-50 dark:bg-yellow-900/20',
+          },
+        ]
+      : []),
     {
       label: 'Gratificación Julio-Diciembre',
       value: christmasBonus + julyBonus,
@@ -70,106 +108,161 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
       bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
     },
     {
-      label: `Bono Salud (${healthRateLabel})`,
+      label: `Bono Essalud (${healthRateLabel})`,
       value: healthBonus,
       icon: Percent,
       color: 'text-pink-600',
       bgColor: 'bg-pink-50 dark:bg-pink-900/20',
     },
+    {
+      labelNode: totalLabelNode, // 👈 usamos nodo en vez de string
+      label: 'TOTAL_DYNAMIC',    // key auxiliar para map
+      value: totalWithBonus,
+      icon: TrendingUp,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50 dark:bg-purple-900/20',
+    },
   ];
 
-  const percRetention =
-    totalAnnualIncome > 0 ? ((1 - netAnnualSalary / totalAnnualIncome) * 100).toFixed(1) : '0.0';
+  // ====== Componente de tarjeta ======
+  const MetricCard: React.FC<{
+    label?: string; // opcional cuando usamos labelNode
+    labelNode?: React.ReactNode;
+    value: number;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+    color: string;
+    bgColor: string;
+    delay?: number;
+  }> = ({ label, labelNode, value, icon: Icon, color, bgColor, delay = 0 }) => {
+    const isTotal = label === 'TOTAL_DYNAMIC' || !!labelNode;
 
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay, duration: 0.45 }}
+        className={`h-[96px] p-3 rounded-lg border ${bgColor} hover:scale-[1.02] transition-all duration-200`}
+      >
+        <div className="grid grid-cols-[auto,1fr] items-center gap-3 h-full">
+          <Icon className={`w-6 h-6 ${color}`} />
+          <div className="flex flex-col items-center justify-center text-center px-1">
+            <p
+              className={`${
+                isTotal ? 'text-[11px] tv:text-xs leading-tight' : 'text-sm tv:text-[15px] font-semibold leading-snug'
+              } text-muted-foreground uppercase tracking-wide`}
+            >
+              {labelNode ?? label}
+            </p>
+
+            {loading ? (
+              <div className="animate-pulse mt-1 w-24 h-4 bg-muted rounded" />
+            ) : (
+              <motion.p
+                key={value}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.25, type: 'spring', stiffness: 220 }}
+                className={`${isTotal ? 'text-base tv:text-lg' : 'text-xl tv:text-2xl'} font-bold ${color} mt-1`}
+              >
+                {formatCurrency(value || 0)}
+              </motion.p>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // ====== Render ======
   return (
     <Card className="shadow-card hover:shadow-elevated transition-all duration-300 animate-fade-in">
       <CardHeader className="pb-4">
-  {/* Fila: título a la izq. y mini-card a la der. */}
-  <div className="flex flex-row items-center justify-between gap-2">
-    <CardTitle className="text-xl font-semibold text-card-foreground flex items-center gap-2 min-w-0">
-      <Coins className="w-6 h-6 text-primary shrink-0" />
-      <span className="truncate">Métricas Anuales</span>
-    </CardTitle>
-
-    {/* Mini tarjeta de Vales (12 meses) a la derecha */}
-    {annualFoodAllowance > 0 && (
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
-        className="shrink-0 flex items-center gap-3 px-3 py-1.5 rounded-md border bg-cyan-50 dark:bg-cyan-900/20 border-cyan-300 shadow-sm min-w-[220px]"
-      >
-        <Coins className="w-4 h-4 text-cyan-600" />
-        {/* Izquierda: texto en columna (vertical) */}
-        <div className="flex flex-col leading-none">
-          <span className="text-[13px] text-cyan-700 uppercase font-semibold tracking-wide">
-            Vales
-          </span>
-          <span className="text-[12px] text-muted-foreground uppercase tracking-wide">
-            (12 meses)
-          </span>
+        <div className="flex flex-row items-center justify-between gap-2">
+          <CardTitle className="text-xl tv:text-2xl font-semibold text-card-foreground flex items-center gap-2 min-w-0">
+            <Coins className="w-6 h-6 tv:w-7 tv:h-7 text-primary shrink-0" />
+            <span className="truncate">Métricas Anuales</span>
+          </CardTitle>
         </div>
-        {/* Derecha: monto grande */}
-        <div className="ml-auto text-right">
-          <span className="text-sm sm:text-base font-bold text-cyan-700">
-            {loading ? '—' : formatCurrency(annualFoodAllowance)}
-          </span>
-        </div>
-      </motion.div>
-    )}
-  </div>
-</CardHeader>
-
+      </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Tarjetas superiores (solo si NO es RIA) */}
+        {/* NORMAL */}
         {!isRIA && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[baseMetrics[0], normalExtras[0], normalExtras[1], baseMetrics[1]].map((metric, index) => {
-              const Icon = metric.icon;
+          <>
+            {(() => {
+              const hasBonusNet = typeof bonusNet === 'number' && bonusNet > 0;
+
+              const metrics = [
+                ...baseMetrics,
+                ...(hasBonusNet
+                  ? [
+                      {
+                        label: 'Bono Neto',
+                        value: bonusNet as number,
+                        icon: Coins,
+                        color: 'text-green-700',
+                        bgColor: 'bg-green-50 dark:bg-green-900/20',
+                      },
+                    ]
+                  : []),
+              ];
+
+              // Si hay vales → 3 columnas; si no → 2×2
+              const colsClass = hasVales
+                ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'
+                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2';
+
               return (
-                <motion.div
-                  key={metric.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.5 }}
-                  className={`p-4 rounded-lg border ${metric.bgColor} hover:scale-105 transition-all duration-200`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-5 h-5 ${metric.color}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                        {metric.label}
-                      </p>
-                      {loading ? (
-                        <div className="animate-pulse">
-                          <div className="h-5 bg-muted rounded w-24 mt-1"></div>
-                        </div>
-                      ) : (
-                        <motion.p
-                          key={metric.value}
-                          initial={{ scale: 0.8, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.3, type: 'spring', stiffness: 200 }}
-                          className={`text-lg font-bold ${metric.color}`}
-                        >
-                          {formatCurrency(metric.value)}
-                        </motion.p>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
+                <div className={`grid ${colsClass} gap-4`}>
+                  {metrics.map((m: any, i: number) => (
+                    <MetricCard
+                      key={m.label ?? `node-${i}`}
+                      {...m}
+                      icon={m.icon}
+                      delay={i * 0.08}
+                    />
+                  ))}
+                </div>
               );
-            })}
-          </div>
+            })()}
+
+            {/* 💰 Sueldo Neto Anual Total (abajo) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.45 }}
+              className="mt-4 p-6 rounded-lg bg-gradient-to-r from-primary/10 to-success/10 border-2 border-primary/20 hover:shadow-glow transition-all duration-300"
+            >
+              <div className="text-center">
+                <p className="text-sm tv:text-[15px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                  💰 Sueldo Neto Anual Total
+                </p>
+                {loading ? (
+                  <div className="animate-pulse flex justify-center">
+                    <div className="h-8 bg-muted rounded w-48" />
+                  </div>
+                ) : (
+                  <motion.p
+                    key={netAnnualSalary}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.4, type: 'spring', stiffness: 150 }}
+                    className="text-3xl tv:text-4xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent"
+                  >
+                    {formatCurrency(netAnnualSalary)}
+                  </motion.p>
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
 
-        {/* Bloque de ALÍCUOTAS para RIA */}
+        {/* RIA (si aplica) */}
         {isRIA && riaAliquots && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
             className="mt-2 p-4 rounded-lg border bg-muted/20"
           >
             <div className="flex items-center gap-2 mb-2">
@@ -178,13 +271,6 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              {false && (
-                <div className="p-3 rounded bg-white/60 dark:bg-white/5 border">
-                  <p className="text-muted-foreground text-xs">Base pensionable (baseSF)</p>
-                  <p className="font-bold">{formatCurrency(riaAliquots.baseSF)}</p>
-                </div>
-              )}
-
               <div className="p-3 rounded bg-white/60 dark:bg-white/5 border">
                 <p className="text-muted-foreground text-xs">Alícuota Gratificación (baseSF / 6)</p>
                 <p className="font-bold">{formatCurrency(riaAliquots.gratiAliquot)}</p>
@@ -200,76 +286,6 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
               <div className="p-3 rounded bg-white/60 dark:bg-white/5 border">
                 <p className="text-muted-foreground text-xs">Alícuota CTS mensual</p>
                 <p className="font-bold">{formatCurrency(riaAliquots.ctsAliquot)}</p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Neto anual destacado */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="mt-4 p-6 rounded-lg bg-gradient-to-r from-primary/10 to-success/10 border-2 border-primary/20 hover:shadow-glow transition-all duration-300"
-        >
-          <div className="text-center">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">
-              💰 Sueldo Neto Anual Total
-            </p>
-            {loading ? (
-              <div className="animate-pulse flex justify-center">
-                <div className="h-8 bg-muted rounded w-48"></div>
-              </div>
-            ) : (
-              <motion.p
-                key={netAnnualSalary}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.4, type: 'spring', stiffness: 150 }}
-                className="text-3xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent"
-              >
-                {formatCurrency(netAnnualSalary)}
-              </motion.p>
-            )}
-            <p className="text-xs text-muted-foreground mt-2">
-              {isRIA
-                ? 'Incluye alícuotas prorrateadas en la cuota RIA y descuentos.'
-                : 'Incluye gratificaciones, bono salud y descuentos.'}
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Resumen de retención */}
-        {!loading && netAnnualSalary > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.4 }}
-            className="mt-2 p-4 rounded-lg bg-muted/30 border"
-          >
-            <div className="text-center">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                📋 Resumen Anual
-              </p>
-              <div className="grid grid-cols-3 gap-4 text-xs">
-                <div>
-                  <p className="text-muted-foreground">Ingresos Totales</p>
-                  <p className="font-bold text-green-600">
-                    {formatCurrency(totalAnnualIncome)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Descuentos</p>
-                  <p className="font-bold text-red-600">
-                    {formatCurrency(totalAnnualIncome - netAnnualSalary)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">% Retención</p>
-                  <p className="font-bold text-orange-600">
-                    {percRetention}%
-                  </p>
-                </div>
               </div>
             </div>
           </motion.div>

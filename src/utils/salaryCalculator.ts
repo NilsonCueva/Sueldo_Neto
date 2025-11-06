@@ -45,6 +45,10 @@ export interface SalaryResults {
   annualFifthCategoryTax: number;
   netAnnualSalary: number;
 
+  // ==== NUEVO: métricas adicionales (opcionales) ====
+  bonusGross?: number; // Bono Bruto
+  bonusNet?: number;   // Bono Neto
+
   // Desglose
   breakdown: SalaryBreakdown;
 }
@@ -316,6 +320,7 @@ export function calculateSalary(inputs: SalaryInputs): SalaryResults {
       netAnnualSalary,
 
       breakdown,
+      // bonusGross / bonusNet quedan opcionales y se pueden setear desde fuera si quieres
     };
   }
 
@@ -419,5 +424,74 @@ export function calculateSalary(inputs: SalaryInputs): SalaryResults {
     netAnnualSalary,
 
     breakdown,
+    // bonusGross / bonusNet quedan opcionales y se pueden setear desde fuera si quieres
   };
+}
+
+/* =================== (OPCIONAL) Helpers de bono =================== */
+/** Bono Bruto = (sueldo básico + vales) × múltiplos */
+export function computeBonusGross(
+  basicSalary: number,
+  foodAllowance: number,
+  multiples: number
+): number {
+  const base = (Number(basicSalary) || 0) + (Number(foodAllowance) || 0);
+  const mult = Number(multiples) || 0;
+  return round2AwayFromZero(base * mult);
+}
+export function computeBonusNetFifthOnlyFromResults(
+  inputs: SalaryInputs,      // para year, regime y healthScheme actuales
+  results: SalaryResults,    // lo que devolvió calculateSalary
+  bonusGross: number         // bono bruto que quieres netear
+): {
+  bonusNet: number;
+  monthlyTaxWithBonus: number;
+  annualTaxWithBonus: number;
+} {
+  const { year, regime, healthScheme } = inputs;
+  const p = getParamsForYear(year, regime);
+
+  // 1) Base anual de 5ta SIN bono (reconstruida internamente)
+  const baseSF = results.basicSalary + results.familyAllowance;
+
+  let baseAnnualFor5thWithoutBonus = 0;
+
+  if (regime === 'NORMAL') {
+    // Igual a tu motor principal
+    baseAnnualFor5thWithoutBonus =
+      (baseSF + results.foodAllowance) * 12 +
+      results.julyBonus +
+      results.christmasBonus +
+      results.healthBonus;
+  } else {
+    // RIA: usa equivalentes (2 gratificaciones + Bono Salud equivalente si aplica)
+    const healthRate = getHealthRate(p, healthScheme);
+    const totalBonusesEq = baseSF * 2;
+    const healthBonusEq =
+      (p.INCLUDE_HEALTH_BONUS_EQUIV !== false) ? totalBonusesEq * healthRate : 0;
+
+    baseAnnualFor5thWithoutBonus =
+      (baseSF + results.foodAllowance) * 12 +
+      totalBonusesEq +
+      healthBonusEq;
+  }
+
+  // 2) Nueva base con bono agregado
+  const baseWithBonus = (Number(baseAnnualFor5thWithoutBonus) || 0) + (Number(bonusGross) || 0);
+
+  // 3) 7 UIT y cálculo de 5ta ANUAL con bono
+  const deductionAmount = p.DEDUCTION_UIT * p.UIT;
+  const taxableWithBonus = Math.max(0, baseWithBonus - deductionAmount);
+
+  const { annualTax: annualTaxWithBonus } = calcFifthCategory(
+    taxableWithBonus,
+    p.FIFTH_CATEGORY_BRACKETS_UIT,
+    p.UIT
+  );
+
+  // 4) Prorrateo mensual y Bono Neto (solo 5ta, sin AFP)
+  const monthlyTaxWithBonus = round2AwayFromZero(annualTaxWithBonus / 12);
+  const bonusNet = round2AwayFromZero(Math.max(0, (Number(bonusGross) || 0) - monthlyTaxWithBonus));
+
+  return { bonusNet, monthlyTaxWithBonus, annualTaxWithBonus };
 }
