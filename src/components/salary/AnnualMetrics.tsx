@@ -116,7 +116,7 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
     },
     {
       labelNode: totalLabelNode, // 👈 usamos nodo en vez de string
-      label: 'TOTAL_DYNAMIC',    // key auxiliar para map
+      label: 'TOTAL_DYNAMIC', // key auxiliar para map
       value: totalWithBonus,
       icon: TrendingUp,
       color: 'text-purple-600',
@@ -148,7 +148,9 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
           <div className="flex flex-col items-center justify-center text-center px-1">
             <p
               className={`${
-                isTotal ? 'text-[11px] tv:text-xs leading-tight' : 'text-sm tv:text-[15px] font-semibold leading-snug'
+                isTotal
+                  ? 'text-[11px] tv:text-xs leading-tight'
+                  : 'text-sm tv:text-[15px] font-semibold leading-snug'
               } text-muted-foreground uppercase tracking-wide`}
             >
               {labelNode ?? label}
@@ -162,7 +164,9 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.25, type: 'spring', stiffness: 220 }}
-                className={`${isTotal ? 'text-base tv:text-lg' : 'text-xl tv:text-2xl'} font-bold ${color} mt-1`}
+                className={`${
+                  isTotal ? 'text-base tv:text-lg' : 'text-xl tv:text-2xl'
+                } font-bold ${color} mt-1`}
               >
                 {formatCurrency(value || 0)}
               </motion.p>
@@ -186,78 +190,46 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* NORMAL */}
+        {/* NORMAL: cards de desglose anual */}
         {!isRIA && (
-          <>
-            {(() => {
-              const hasBonusNet = typeof bonusNet === 'number' && bonusNet > 0;
+          (() => {
+            const hasBonusNet = typeof bonusNet === 'number' && bonusNet > 0;
 
-              const metrics = [
-                ...baseMetrics,
-                ...(hasBonusNet
-                  ? [
-                      {
-                        label: 'Bono Neto',
-                        value: bonusNet as number,
-                        icon: Coins,
-                        color: 'text-green-700',
-                        bgColor: 'bg-green-50 dark:bg-green-900/20',
-                      },
-                    ]
-                  : []),
-              ];
+            const metrics = [
+              ...baseMetrics,
+              ...(hasBonusNet
+                ? [
+                    {
+                      label: 'Bono Neto',
+                      value: bonusNet as number,
+                      icon: Coins,
+                      color: 'text-green-700',
+                      bgColor: 'bg-green-50 dark:bg-green-900/20',
+                    },
+                  ]
+                : []),
+            ];
 
-              // Si hay vales → 3 columnas; si no → 2×2
-              const colsClass = hasVales
-                ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'
-                : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2';
+            const colsClass = hasVales
+              ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'
+              : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2';
 
-              return (
-                <div className={`grid ${colsClass} gap-4`}>
-                  {metrics.map((m: any, i: number) => (
-                    <MetricCard
-                      key={m.label ?? `node-${i}`}
-                      {...m}
-                      icon={m.icon}
-                      delay={i * 0.08}
-                    />
-                  ))}
-                </div>
-              );
-            })()}
-
-            {/* 💰 Sueldo Neto Anual Total (abajo) */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.45 }}
-              className="mt-4 p-6 rounded-lg bg-gradient-to-r from-primary/10 to-success/10 border-2 border-primary/20 hover:shadow-glow transition-all duration-300"
-            >
-              <div className="text-center">
-                <p className="text-sm tv:text-[15px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
-                  💰 Sueldo Neto Anual Total
-                </p>
-                {loading ? (
-                  <div className="animate-pulse flex justify-center">
-                    <div className="h-8 bg-muted rounded w-48" />
-                  </div>
-                ) : (
-                  <motion.p
-                    key={netAnnualSalary}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.4, type: 'spring', stiffness: 150 }}
-                    className="text-3xl tv:text-4xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent"
-                  >
-                    {formatCurrency(netAnnualSalary)}
-                  </motion.p>
-                )}
+            return (
+              <div className={`grid ${colsClass} gap-4`}>
+                {metrics.map((m: any, i: number) => (
+                  <MetricCard
+                    key={m.label ?? `node-${i}`}
+                    {...m}
+                    icon={m.icon}
+                    delay={i * 0.08}
+                  />
+                ))}
               </div>
-            </motion.div>
-          </>
+            );
+          })()
         )}
 
-        {/* RIA (si aplica) */}
+        {/* RIA (si aplica): solo alícuotas explicativas */}
         {isRIA && riaAliquots && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -267,29 +239,79 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
           >
             <div className="flex items-center gap-2 mb-2">
               <Percent className="w-4 h-4 text-primary" />
-              <p className="text-sm font-semibold">Alícuotas RIA (mensualizadas)</p>
+              <p className="text-sm font-semibold">
+                Alícuotas RIA (mensualizadas)
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div className="p-3 rounded bg-white/60 dark:bg-white/5 border">
-                <p className="text-muted-foreground text-xs">Alícuota Gratificación (baseSF / 6)</p>
-                <p className="font-bold">{formatCurrency(riaAliquots.gratiAliquot)}</p>
+                <p className="text-muted-foreground text-xs">
+                  Alícuota Gratificación (baseSF / 6)
+                </p>
+                <p className="font-bold">
+                  {formatCurrency(riaAliquots.gratiAliquot)}
+                </p>
               </div>
 
               <div className="p-3 rounded bg-white/60 dark:bg-white/5 border">
                 <p className="text-muted-foreground text-xs">
-                  Alícuota Bono Extraord. {riaAliquots.healthRateLabel ? `(${riaAliquots.healthRateLabel})` : ''}
+                  Alícuota Bono Extraord.{' '}
+                  {riaAliquots.healthRateLabel
+                    ? `(${riaAliquots.healthRateLabel})`
+                    : ''}
                 </p>
-                <p className="font-bold">{formatCurrency(riaAliquots.bonoAliquot)}</p>
+                <p className="font-bold">
+                  {formatCurrency(riaAliquots.bonoAliquot)}
+                </p>
               </div>
 
               <div className="p-3 rounded bg-white/60 dark:bg-white/5 border">
-                <p className="text-muted-foreground text-xs">Alícuota CTS mensual</p>
-                <p className="font-bold">{formatCurrency(riaAliquots.ctsAliquot)}</p>
+                <p className="text-muted-foreground text-xs">
+                  Alícuota CTS mensual
+                </p>
+                <p className="font-bold">
+                  {formatCurrency(riaAliquots.ctsAliquot)}
+                </p>
               </div>
             </div>
           </motion.div>
         )}
+
+        {/* 💰 Sueldo Neto Anual Total (abajo) — AHORA PARA AMBOS RÉGIMENES */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.45 }}
+          className="mt-4 p-6 rounded-lg bg-gradient-to-r from-primary/10 to-success/10 border-2 border-primary/20 hover:shadow-glow transition-all duration-300"
+        >
+          <div className="text-center">
+            <p className="text-sm tv:text-[15px] font-medium text-muted-foreground uppercase tracking-wide mb-2">
+              {isRIA
+                ? '💰 Sueldo Neto Anual Total (Cuota RIA)'
+                : '💰 Sueldo Neto Anual Total'}
+            </p>
+            {loading ? (
+              <div className="animate-pulse flex justify-center">
+                <div className="h-8 bg-muted rounded w-48" />
+              </div>
+            ) : (
+              <motion.p
+                key={netAnnualSalary}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{
+                  duration: 0.4,
+                  type: 'spring',
+                  stiffness: 150,
+                }}
+                className="text-3xl tv:text-4xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent"
+              >
+                {formatCurrency(netAnnualSalary)}
+              </motion.p>
+            )}
+          </div>
+        </motion.div>
       </CardContent>
     </Card>
   );
