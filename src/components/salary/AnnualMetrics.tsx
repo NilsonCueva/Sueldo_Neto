@@ -240,7 +240,7 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
             {labelNode ?? label}
           </p>
           <p className={`text-xl font-bold ${color}`}>
-            {loading ? '—' : formatCurrency(value || 0)}
+            {loading ? '—' : formatCurrency(value || 0, country)}
           </p>
         </div>
       </div>
@@ -294,7 +294,7 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
                   Alícuota Gratificación
                 </p>
                 <p className="font-bold">
-                  {formatCurrency(riaAliquots.gratiAliquot)}
+                  {formatCurrency(riaAliquots.gratiAliquot, country)}
                 </p>
               </div>
 
@@ -303,7 +303,7 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
                   Alícuota Bono Extraord.
                 </p>
                 <p className="font-bold">
-                  {formatCurrency(riaAliquots.bonoAliquot)}
+                  {formatCurrency(riaAliquots.bonoAliquot, country)}
                 </p>
               </div>
 
@@ -312,7 +312,7 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
                   Alícuota CTS mensual
                 </p>
                 <p className="font-bold">
-                  {formatCurrency(riaAliquots.ctsAliquot)}
+                  {formatCurrency(riaAliquots.ctsAliquot, country)}
                 </p>
               </div>
             </div>
@@ -326,7 +326,7 @@ const AnnualMetrics: React.FC<AnnualMetricsProps> = ({
               💰 Sueldo Neto Anual Total
             </p>
             <p className="text-3xl font-bold bg-gradient-to-r from-primary to-success bg-clip-text text-transparent">
-              {formatCurrency(netAnnualSalary)}
+              {formatCurrency(netAnnualSalary, country)}
             </p>
           </div>
         </div>

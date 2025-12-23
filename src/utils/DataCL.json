@@ -1,0 +1,44 @@
+{
+  "country": "CL",
+  "currency": "CLP",
+
+  "utm": {
+    "2024": 64000,
+    "2025": 67000
+  },
+
+  "socialSecurity": {
+    "employee": {
+      "afp": 0.115,
+      "health": 0.07,
+      "unemploymentInsurance": {
+        "indefiniteContract": 0.006,
+        "fixedTermContract": 0
+      }
+    },
+    "employer": {
+      "sis": 0.0141,
+      "unemploymentInsurance": {
+        "indefiniteContract": 0.024,
+        "fixedTermContract": 0.03
+      }
+    }
+  },
+
+  "incomeTax": {
+    "name": "Impuesto Unico de Segunda Categoria",
+    "type": "progressive",
+    "calculation": "monthly",
+    "base": "taxable_income",
+    "currencyUnit": "UTM",
+    "brackets": [
+      { "from": 0, "to": 13.5, "fixed": 0, "rate": 0 },
+      { "from": 13.5, "to": 30, "fixed": 0, "rate": 0.04 },
+      { "from": 30, "to": 50, "fixed": 0.66, "rate": 0.08 },
+      { "from": 50, "to": 70, "fixed": 2.26, "rate": 0.135 },
+      { "from": 70, "to": 90, "fixed": 4.96, "rate": 0.23 },
+      { "from": 90, "to": 120, "fixed": 9.56, "rate": 0.304 },
+      { "from": 120, "to": null, "fixed": 18.68, "rate": 0.4 }
+    ]
+  }
+}
