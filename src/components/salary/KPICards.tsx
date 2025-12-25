@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '@/utils/salaryCalculator';
 import {
   TrendingUp,
   CreditCard,
@@ -12,14 +13,14 @@ import {
 
 /* ===================== Tipos ===================== */
 
+type Country = 'PE' | 'EC' | 'CL';
+
 interface KPICardsProps {
-  country?: 'PE' | 'EC';
+  country: Country;
 
   grossSalary: number;
-
-  // Netos
-  netSalary: number;           // Año 1
-  netSalaryYear2?: number;     // Año 2 (EC)
+  netSalary: number;
+  netSalaryYear2?: number;
 
   // 🇵🇪 Perú
   afpDeduction?: number;
@@ -33,15 +34,18 @@ interface KPICardsProps {
   decimoFourth?: number;
   reserveFund?: number;
 
+  // 🇨🇱 Chile (NOMBRES CORRECTOS)
+  healthDeduction?: number;
+  unemploymentDeduction?: number;
+
   loading?: boolean;
 }
 
 /* ===================== Component ===================== */
 
 const KPICards: React.FC<KPICardsProps> = ({
-  country = 'PE',
+  country,
   grossSalary,
-
   netSalary,
   netSalaryYear2,
 
@@ -55,14 +59,12 @@ const KPICards: React.FC<KPICardsProps> = ({
   decimoFourth = 0,
   reserveFund = 0,
 
+  healthDeduction = 0,
+  unemploymentDeduction = 0,
+
   loading = false,
 }) => {
-  const formatCurrency = (value: number): string =>
-    new Intl.NumberFormat(country === 'EC' ? 'es-EC' : 'es-PE', {
-      style: 'currency',
-      currency: country === 'EC' ? 'USD' : 'PEN',
-      maximumFractionDigits: 0,
-    }).format(value);
+  const format = (value: number) => formatCurrency(value, country);
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -70,20 +72,18 @@ const KPICards: React.FC<KPICardsProps> = ({
       {/* ================= ECUADOR ================= */}
       {country === 'EC' && (
         <>
-          {/* ===== Fila 1 ===== */}
           <div className="grid grid-cols-4 gap-3">
-            <KPICard title="Salario Base" value={grossSalary} icon={TrendingUp} variant="gross" loading={loading} format={formatCurrency} />
-            <KPICard title="Décimo Tercero" value={decimoThird} icon={Gift} variant="food" loading={loading} format={formatCurrency} />
-            <KPICard title="Décimo Cuarto" value={decimoFourth} icon={Gift} variant="food" loading={loading} format={formatCurrency} />
-            <KPICard title="Fondo de Reserva" value={reserveFund} icon={Gift} variant="food" loading={loading} format={formatCurrency} />
+            <KPICard title="Salario Base" value={grossSalary} icon={TrendingUp} variant="gross" loading={loading} format={format} />
+            <KPICard title="Décimo Tercero" value={decimoThird} icon={Gift} variant="food" loading={loading} format={format} />
+            <KPICard title="Décimo Cuarto" value={decimoFourth} icon={Gift} variant="food" loading={loading} format={format} />
+            <KPICard title="Fondo de Reserva" value={reserveFund} icon={Gift} variant="food" loading={loading} format={format} />
           </div>
 
-          {/* ===== Fila 2 ===== */}
           <div className="grid grid-cols-4 gap-3">
-            <KPICard title="IESS Personal (9.45%)" value={iessDeduction} icon={CreditCard} variant="deduction" loading={loading} format={formatCurrency} />
-            <KPICard title="Impuesto a la Renta" value={incomeTax} icon={FileText} variant="tax" loading={loading} format={formatCurrency} />
-            <KPICard title="Neto Mensual (Año 1)" value={netSalary} icon={CheckCircle2} variant="net" loading={loading} format={formatCurrency} />
-            <KPICard title="Neto Mensual (Año 2)" value={netSalaryYear2 ?? netSalary} icon={CheckCircle2} variant="net" loading={loading} format={formatCurrency} />
+            <KPICard title="IESS Personal" value={iessDeduction} icon={CreditCard} variant="deduction" loading={loading} format={format} />
+            <KPICard title="Impuesto a la Renta" value={incomeTax} icon={FileText} variant="tax" loading={loading} format={format} />
+            <KPICard title="Neto Mensual (Año 1)" value={netSalary} icon={CheckCircle2} variant="net" loading={loading} format={format} />
+            <KPICard title="Neto Mensual (Año 2)" value={netSalaryYear2 ?? netSalary} icon={CheckCircle2} variant="net" loading={loading} format={format} />
           </div>
         </>
       )}
@@ -91,13 +91,25 @@ const KPICards: React.FC<KPICardsProps> = ({
       {/* ================= PERÚ ================= */}
       {country === 'PE' && (
         <div className="grid grid-cols-5 gap-3">
-          <KPICard title="Bruto Mensual" value={grossSalary} icon={TrendingUp} variant="gross" loading={loading} format={formatCurrency} />
-          <KPICard title="AFP (Jubilación)" value={afpDeduction} icon={CreditCard} variant="deduction" loading={loading} format={formatCurrency} />
-          <KPICard title="5ta Categoría" value={fifthCategoryTax} icon={FileText} variant="tax" loading={loading} format={formatCurrency} />
+          <KPICard title="Bruto Mensual" value={grossSalary} icon={TrendingUp} variant="gross" loading={loading} format={format} />
+          <KPICard title="AFP" value={afpDeduction} icon={CreditCard} variant="deduction" loading={loading} format={format} />
+          <KPICard title="5ta Categoría" value={fifthCategoryTax} icon={FileText} variant="tax" loading={loading} format={format} />
           {foodAllowance > 0 && (
-            <KPICard title="Bono de Alimentos" value={foodAllowance} icon={Utensils} variant="food" loading={loading} format={formatCurrency} />
+            <KPICard title="Bono Alimentos" value={foodAllowance} icon={Utensils} variant="food" loading={loading} format={format} />
           )}
-          <KPICard title="Neto Mensual" value={netSalary} icon={CheckCircle2} variant="net" loading={loading} format={formatCurrency} />
+          <KPICard title="Neto Mensual" value={netSalary} icon={CheckCircle2} variant="net" loading={loading} format={format} />
+        </div>
+      )}
+
+      {/* ================= CHILE ================= */}
+      {country === 'CL' && (
+        <div className="grid grid-cols-6 gap-3">
+          <KPICard title="Sueldo Bruto" value={grossSalary} icon={TrendingUp} variant="gross" loading={loading} format={format} />
+          <KPICard title="AFP" value={afpDeduction} icon={CreditCard} variant="deduction" loading={loading} format={format} />
+          <KPICard title="Salud (7%)" value={healthDeduction} icon={CreditCard} variant="deduction" loading={loading} format={format} />
+          <KPICard title="Seguro Cesantía" value={unemploymentDeduction} icon={FileText} variant="tax" loading={loading} format={format} />
+          <KPICard title="Impuesto 2ª Categoría" value={fifthCategoryTax} icon={FileText} variant="tax" loading={loading} format={format} />
+          <KPICard title="Sueldo Líquido" value={netSalary} icon={CheckCircle2} variant="net" loading={loading} format={format} />
         </div>
       )}
     </div>
@@ -134,7 +146,7 @@ const KPICard: React.FC<KPICardProps> = ({
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
       <Card className={`bg-gradient-to-r ${styles[variant]}`}>
-        <CardContent className="p-4 text-center">
+        <CardContent className="p-4 text-center h-[120px] flex flex-col justify-center">
           <Icon className="mx-auto mb-2 h-4 w-4" />
           <p className="text-xs uppercase opacity-70">{title}</p>
           <p className="text-lg font-bold">

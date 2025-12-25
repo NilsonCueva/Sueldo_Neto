@@ -1,9 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/utils/salaryCalculator';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { PieChart as PieChartIcon, BarChart3 } from 'lucide-react';
 
 interface ChartsPanelProps {
+  country?: 'PE' | 'EC' | 'CL';
   grossSalary: number;
   afpDeduction: number;
   fifthCategoryTax: number;
@@ -11,19 +13,13 @@ interface ChartsPanelProps {
 }
 
 const ChartsPanel: React.FC<ChartsPanelProps> = ({
+  country = 'PE',
   grossSalary,
   afpDeduction,
   fifthCategoryTax,
   netSalary,
 }) => {
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('es-PE', {
-      style: 'currency',
-      currency: 'PEN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
+  const format = (value: number) => formatCurrency(value, country ?? 'PE');
 
   // Datos para gráfico de composición (donut)
   const compositionData = [
@@ -60,8 +56,8 @@ const ChartsPanel: React.FC<ChartsPanelProps> = ({
       return (
         <div className="bg-card p-3 border rounded-lg shadow-lg">
           <p className="font-medium text-card-foreground">{data.name}</p>
-          <p className="text-sm text-muted-foreground">
-            {formatCurrency(data.value)} ({((data.value / grossSalary) * 100).toFixed(1)}%)
+            <p className="text-sm text-muted-foreground">
+            {format(data.value)} ({((data.value / grossSalary) * 100).toFixed(1)}%)
           </p>
         </div>
       );
@@ -75,11 +71,11 @@ const ChartsPanel: React.FC<ChartsPanelProps> = ({
       return (
         <div className="bg-card p-3 border rounded-lg shadow-lg">
           <p className="font-medium text-card-foreground mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.dataKey}: {formatCurrency(entry.value)}
-            </p>
-          ))}
+              {payload.map((entry: any, index: number) => (
+              <p key={index} className="text-sm" style={{ color: entry.color }}>
+                {entry.dataKey}: {format(entry.value)}
+              </p>
+            ))}
         </div>
       );
     }
@@ -186,7 +182,7 @@ const ChartsPanel: React.FC<ChartsPanelProps> = ({
                 <YAxis 
                   stroke="#6b7280"
                   fontSize={12}
-                  tickFormatter={(value) => `S/ ${(value / 1000).toFixed(0)}k`}
+                  tickFormatter={(value) => format(value)}
                 />
                 <Tooltip content={<CustomTooltipBar />} />
                 <Legend />

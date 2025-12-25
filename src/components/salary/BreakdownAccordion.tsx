@@ -9,23 +9,24 @@ import { useToast } from '@/hooks/use-toast';
 interface BreakdownAccordionProps {
   breakdown: SalaryBreakdown | null;
   loading?: boolean;
+  country?: 'PE' | 'EC' | 'CL';
 }
 
-const BreakdownAccordion: React.FC<BreakdownAccordionProps> = ({ breakdown, loading = false }) => {
+const BreakdownAccordion: React.FC<BreakdownAccordionProps> = ({ breakdown, loading = false, country = 'PE' }) => {
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   const generateTextBreakdown = (): string => {
     if (!breakdown) return '';
     
-    let text = '🧮 DESGLOSE DETALLADO - SUELDO NETO PERÚ 2025\n';
+  let text = `🧮 DESGLOSE DETALLADO - SUELDO NETO ${country} 2025\n`;
     text += '=' .repeat(50) + '\n\n';
     
     // Cálculo mensual
     text += '📅 CÁLCULO MENSUAL:\n';
     text += '-'.repeat(20) + '\n';
     breakdown.monthlyCalculation.forEach((item) => {
-      const amount = item.amount >= 0 ? formatCurrency(item.amount) : `- ${formatCurrency(Math.abs(item.amount))}`;
+  const amount = item.amount >= 0 ? formatCurrency(item.amount, country) : `- ${formatCurrency(Math.abs(item.amount), country)}`;
       text += `${item.step}. ${item.description}: ${amount}\n`;
       if (item.formula) {
         text += `   Fórmula: ${item.formula}\n`;
@@ -38,7 +39,7 @@ const BreakdownAccordion: React.FC<BreakdownAccordionProps> = ({ breakdown, load
     text += '📆 CÁLCULO ANUAL:\n';
     text += '-'.repeat(20) + '\n';
     breakdown.annualCalculation.forEach((item) => {
-      const amount = item.amount >= 0 ? formatCurrency(item.amount) : `- ${formatCurrency(Math.abs(item.amount))}`;
+  const amount = item.amount >= 0 ? formatCurrency(item.amount, country) : `- ${formatCurrency(Math.abs(item.amount), country)}`;
       text += `${item.step}. ${item.description}: ${amount}\n`;
       if (item.formula) {
         text += `   Fórmula: ${item.formula}\n`;
@@ -51,8 +52,8 @@ const BreakdownAccordion: React.FC<BreakdownAccordionProps> = ({ breakdown, load
     if (breakdown.fifthCategoryDetails.length > 0) {
       text += '📊 DESGLOSE 5TA CATEGORÍA:\n';
       text += '-'.repeat(25) + '\n';
-      breakdown.fifthCategoryDetails.forEach((item) => {
-        text += `${item.step} (${item.rate}): ${item.description} = ${formatCurrency(item.amount)}\n`;
+        breakdown.fifthCategoryDetails.forEach((item) => {
+        text += `${item.step} (${item.rate}): ${item.description} = ${formatCurrency(item.amount, country)}\n`;
       });
     }
     
@@ -84,9 +85,9 @@ const BreakdownAccordion: React.FC<BreakdownAccordionProps> = ({ breakdown, load
 
   const formatStepAmount = (amount: number): string => {
     if (amount >= 0) {
-      return formatCurrency(amount);
+    return formatCurrency(amount, country);
     } else {
-      return `- ${formatCurrency(Math.abs(amount))}`;
+    return `- ${formatCurrency(Math.abs(amount), country)}`;
     }
   };
 
@@ -232,7 +233,7 @@ const BreakdownAccordion: React.FC<BreakdownAccordionProps> = ({ breakdown, load
                         </div>
                       </div>
                       <div className={`font-bold text-right ml-4 ${getAmountColor(item.amount)}`}>
-                        {formatCurrency(item.amount)}
+                        {formatCurrency(item.amount, country)}
                       </div>
                     </div>
                   ))}

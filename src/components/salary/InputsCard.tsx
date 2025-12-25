@@ -13,11 +13,11 @@ import {
 import { Calculator, RefreshCw } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-import type { SalaryInputs, Regime } from '@/utils/salaryCalculator';
+import type { SalaryInputs, Regime, Country } from '@/utils/salaryCalculator';
+import { formatCurrency } from '@/utils/salaryCalculator';
 
-/* ===================== Tipos ===================== */
+/* ===================== Tipos locales ===================== */
 
-type Country = 'PE' | 'EC';
 type HealthScheme = 'ESSALUD' | 'EPS';
 
 interface InputsCardProps {
@@ -25,8 +25,6 @@ interface InputsCardProps {
   onClear: () => void;
   loading?: boolean;
   onBonusMultiplesChange?: (multiples: number) => void;
-
-  // ✅ NUEVO (solo lógica, no UI)
   onCountryChange?: (country: Country) => void;
 }
 
@@ -38,13 +36,8 @@ const toNumber = (v: string) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const formatCurrency = (value: number, country: Country) =>
-  new Intl.NumberFormat(country === 'EC' ? 'es-EC' : 'es-PE', {
-    style: 'currency',
-    currency: country === 'EC' ? 'USD' : 'PEN',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value);
+// Use centralized `formatCurrency` from utils to avoid duplicate logic and
+// ensure consistent formatting across the app.
 
 /* ===================== Component ===================== */
 
@@ -58,7 +51,6 @@ const InputsCard: React.FC<InputsCardProps> = ({
   /* ---------- País ---------- */
   const [country, setCountry] = useState<Country>('PE');
 
-  // 🔗 sincroniza con el padre (NO afecta UI)
   useEffect(() => {
     onCountryChange?.(country);
   }, [country, onCountryChange]);
@@ -104,8 +96,16 @@ const InputsCard: React.FC<InputsCardProps> = ({
       };
       onCalculate(inputs);
       onBonusMultiplesChange?.(toNumber(bonusMultiples));
+
+    } else if (country === 'CL') {
+      onCalculate({
+        basicSalary: toNumber(basicSalary),
+        year: parseInt(year, 10),
+        contractType: 'INDEFINITE',
+      });
+
     } else {
-      // Ecuador (bruto)
+      // Ecuador
       onCalculate({
         grossMonthly: toNumber(basicSalary),
         year: parseInt(year, 10),
@@ -149,6 +149,7 @@ const InputsCard: React.FC<InputsCardProps> = ({
               <SelectContent>
                 <SelectItem value="PE">🇵🇪 Perú</SelectItem>
                 <SelectItem value="EC">🇪🇨 Ecuador</SelectItem>
+                <SelectItem value="CL">🇨🇱 Chile</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -166,7 +167,7 @@ const InputsCard: React.FC<InputsCardProps> = ({
           </div>
         </div>
 
-        {/* Régimen + Régimen de Salud (MISMA FILA – PERÚ) */}
+        {/* Régimen + Salud (solo Perú) */}
         {country === 'PE' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -204,24 +205,18 @@ const InputsCard: React.FC<InputsCardProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              {country === 'EC' ? 'Sueldo Bruto Mensual' : 'Sueldo Básico'}
+              {country === 'PE' ? 'Sueldo Básico' : 'Sueldo Bruto Mensual'}
             </label>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                    {country === 'EC' ? '$' : 'S/'}
-                  </span>
-                  <Input
-                    value={basicSalary}
-                    onChange={(e) =>
-                      setBasicSalary(
-                        e.target.value.replace(',', '.').replace(/[^0-9.]/g, '')
-                      )
-                    }
-                    className="pl-8 font-mono"
-                  />
-                </div>
+                <Input
+                  value={basicSalary}
+                  onChange={(e) =>
+                    setBasicSalary(
+                      e.target.value.replace(',', '.').replace(/[^0-9.]/g, '')
+                    )
+                  }
+                />
               </TooltipTrigger>
               {basicSalary && (
                 <TooltipContent>{basicSalaryMoney}</TooltipContent>
@@ -278,7 +273,9 @@ const InputsCard: React.FC<InputsCardProps> = ({
                 checked={hasFamilyAllowance}
                 onCheckedChange={(v) => setHasFamilyAllowance(!!v)}
               />
-              <label className="text-sm font-medium">Asignación Familiar</label>
+              <label className="text-sm font-medium">
+                Asignación Familiar
+              </label>
             </div>
           </>
         )}

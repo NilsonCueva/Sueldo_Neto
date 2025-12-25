@@ -10,6 +10,7 @@ interface BonusMetricsProps {
   loading?: boolean;
   /** Opcional: abrir por defecto (true) o cerrado (false) */
   defaultExpanded?: boolean;
+  country?: 'PE' | 'EC' | 'CL';
 }
 
 const BonusMetrics: React.FC<BonusMetricsProps> = ({
@@ -17,6 +18,7 @@ const BonusMetrics: React.FC<BonusMetricsProps> = ({
   bonusNet = 0,
   loading = false,
   defaultExpanded = false,
+  country = 'PE',
 }) => {
   const [open, setOpen] = useState<boolean>(defaultExpanded);
 
@@ -71,7 +73,7 @@ const BonusMetrics: React.FC<BonusMetricsProps> = ({
               transition={{ duration: 0.25, type: 'spring', stiffness: 220 }}
               className={`text-xl font-bold ${color} mt-1`}
             >
-              {formatCurrency(value || 0)}
+              {formatCurrency(value || 0, country)}
             </motion.p>
           )}
         </div>
